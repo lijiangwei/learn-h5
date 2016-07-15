@@ -24,8 +24,8 @@
 * [滴滴宣传页][1]
 * [春节把爱带回家][2]
 
-[1]: https://sunpeijun.github.io/demo/h5/001-diditaxi/index.html
-[2]: https://sunpeijun.github.io/demo/h5/002-lovetohome/index.html
+[1]: https://sunpeijun.github.io/demo/h5/preview01.html
+[2]: https://sunpeijun.github.io/demo/h5/preview02.html
 
 
 > 注意：pc端浏览，请使用chrome浏览器移动端调试模拟器
