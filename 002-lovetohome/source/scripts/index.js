@@ -1,4 +1,4 @@
-(function() {
+;(function() {
 
     var autiobtn = document.getElementsByClassName('audio')[0];
 
@@ -6,8 +6,7 @@
     var addClass = function(ele, strClass) {
         var reg = new RegExp("(^| )" + strClass + "( |$)");
         if (reg.test(ele.className)) {
-            //如果此类样式已经存在，则什么也不需要做
-        } else { //不存在
+        } else {
             ele.className = ele.className.trim() + " " + strClass;
         }
     };

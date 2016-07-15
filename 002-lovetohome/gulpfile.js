@@ -21,36 +21,11 @@
         postcss = require('gulp-postcss'),
         cssnano = require('gulp-cssnano'),
         minifyHTML = require('gulp-minify-html'),
+        concat = require('gulp-concat'),        // 文件合并
         paths = {
             root: './',
             dist: 'dist/',
             source: 'source',
-            demo: '',
-        },
-        template = {
-            filename: 'index',
-            pkg: require('../package.json'),
-            banner: [
-                '/**',
-                ' * <%= pkg.name %> <%= pkg.version %>',
-                ' * <%= pkg.description %>',
-                ' * ',
-                ' * <%= pkg.homepage %>',
-                ' * ',
-                ' * Copyright <%= date.year %>, <%= pkg.author %>',
-                ' * sunpeijun',
-                ' * http://www.sunpeijun.com/',
-                ' * ',
-                ' * Licensed under <%= pkg.license.join(" & ") %>',
-                ' * ',
-                ' * Released on: <%= date.month %> <%= date.day %>, <%= date.year %>',
-                ' */',
-                ''].join('\n'),
-            date: {
-                year: new Date().getFullYear(),
-                month: ('January February March April May June July August September October November December').split(' ')[new Date().getMonth()],
-                day: new Date().getDate()
-            }
         };
 
 
@@ -59,13 +34,12 @@
 
         gulp.src(paths.source + '/scripts/index.js')
             .pipe(sourcemaps.init())
-            .pipe(header(template.banner, { pkg : template.pkg, date: template.date } ))
             .pipe(uglify())
             .pipe(jshint())
             .pipe(jshint.reporter(stylish))
             .pipe(sourcemaps.write('./'))
 
-            .pipe(rev())    // 计算md5
+            .pipe(rev())
             .pipe(gulp.dest(paths.dist + '/scripts'))
 
             .pipe(rev.manifest())
@@ -73,16 +47,69 @@
 
             .pipe(connect.reload())
 
-        cb();
+            cb();
     });
 
     gulp.task('rev', function() {
-      gulp.src([paths.dist + '/rev/*.json', paths.dist + '/index.html'])
+      gulp.src([paths.dist + '/rev/*.json', paths.source + '/index.html'])
         .pipe(revCollector())
-        // .pipe(rename(paths.dist + 'index.min.html'))
-        .pipe(gulp.dest(paths.dist));
+        .pipe(rename(paths.dist + '/index.min.html'))
+        // .pipe(gulp.dest(paths.dist));
 
     });
+
+
+
+    gulp.task('scripts', function () {
+        // return gulp.src('source/scripts/*.js')
+        //     .pipe(rev())
+        //     .pipe(gulp.dest('dist/js'))
+        //     .pipe( rev.manifest() )
+        //     .pipe( gulp.dest( 'rev/js' ) );
+
+        return gulp.src('source/scripts/*.js')
+            .pipe(concat('index.min.js'))
+            .pipe(uglify())
+            .pipe(gulp.dest('dist/js'));
+
+    });
+
+    gulp.task('minifyhtml', function() {
+      return gulp.src('source/index.html')
+        .pipe(htmlmin({collapseWhitespace: true}))
+        .pipe(rename('index.min.html'))
+        .pipe(gulp.dest(paths.dist));
+    });
+
+    // auto mini css
+    gulp.task('minifyicss', function () {
+        var postcss      = require('gulp-postcss');
+        var sourcemaps   = require('gulp-sourcemaps');
+        var autoprefixer = require('autoprefixer');
+
+        return gulp.src('source/styles/index.css')
+            .pipe(sourcemaps.init())
+            .pipe(postcss([ autoprefixer({ browsers: ['> 1%'], remove: false }) ]))
+            .pipe(minifycss())
+            .pipe(sourcemaps.write('.'))
+
+
+            .pipe(rev())
+            .pipe(gulp.dest('dist/styles/'))
+            .pipe(rev.manifest())
+            .pipe(gulp.dest('rev/styles'));
+
+            // .pipe(rename({suffix: '.min'}))
+
+            // .pipe(gulp.dest('./source/styles/'));
+
+            // gulp.src(['./source/styles/rev/*.json', './source/index.html'])
+            // .pipe(revCollector())
+            // .pipe(rename({suffix: '.min'}))
+            // .pipe(gulp.dest('./source/'));
+
+    });
+
 
     gulp.task('watch', function () {
         gulp.watch(paths.source + '/scripts/index.js', [ 'dist' ]);
@@ -96,11 +123,6 @@
         });
     });
 
-    gulp.task('minifyhtml', function() {
-      return gulp.src(paths.source + '/index.html')
-        .pipe(htmlmin({collapseWhitespace: true}))
-        .pipe(gulp.dest(paths.dist));
-    });
 
     gulp.task('minifyimg', function() {
       return gulp.src(paths.source + '/images/*')
@@ -116,34 +138,7 @@
         return gulp.src(paths.source + '/index.html').pipe(open({ uri: 'http://localhost:4000/' + paths.source + '/index.html'}));
     });
 
-    // auto mini css
-    gulp.task('autoprefixer', function () {
-        var postcss      = require('gulp-postcss');
-        var sourcemaps   = require('gulp-sourcemaps');
-        var autoprefixer = require('autoprefixer');
 
-        return gulp.src('./source/styles/index.css')
-            .pipe(sourcemaps.init())
-            .pipe(postcss([ autoprefixer({ browsers: ['> 1%'], remove: false }) ]))
-            .pipe(minifycss())
-            .pipe(sourcemaps.write('.'))
-
-
-            .pipe(rev())
-            .pipe(gulp.dest('./source/styles/'))
-            .pipe(rev.manifest())
-            .pipe(gulp.dest('./source/styles/rev'));
-
-            // .pipe(rename({suffix: '.min'}))
-
-            // .pipe(gulp.dest('./source/styles/'));
-
-            // gulp.src(['./source/styles/rev/*.json', './source/index.html'])
-            // .pipe(revCollector())
-            // .pipe(rename({suffix: '.min'}))
-            // .pipe(gulp.dest('./source/'));
-
-    });
 
     gulp.task('rev', function () {
         return gulp.src(['./source/styles/rev/*.json', './source/index.html'])
